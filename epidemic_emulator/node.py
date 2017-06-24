@@ -25,7 +25,7 @@ class Node(object):
         self._create_threads()
 
 
-    def start(self, port, neighbors=[], state = "S"):
+    def start(self, nd, neighbors=[]):
         """
         Starts node activity.
         port = port number for listener socket
@@ -36,11 +36,12 @@ class Node(object):
         if (self._stopped):
             return False
 
-        self._port = port
+        self._nd = nd
+        self._port = nd[1][1]
         self._stopped = False
         self._neighbors = neighbors
         self.state = "S"
-        self.state = state
+        self.state = nd[2][0][0]
         self._initial_state = self.state
         
         self._start_threads()
@@ -57,13 +58,7 @@ class Node(object):
         self._infected.set()
         self._susceptible.set()
         
-        try:
-            self._sock.sendto("",("localhost",self._port))
-            self._sock.close()
-        except:
-            self._sock.close()
-        finally:
-            self._sock.close()
+        self._close_sock()
         
         #self._join_threads()
 
@@ -120,14 +115,19 @@ class Node(object):
                         print "Infect Stopped\n"
                         return
                     if len(self._neighbors):
-                        self._sock.sendto("I",random.choice(self._neighbors)[1])
+                        rn = random.choice(self._neighbors)[1]
+                        print rn
+                        self._sock.sendto("I",rn)
+                        
                     print "mandei I\n"
         except IOError as IOe:
             print "INFECT I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
-            self._sock.close()
+            self._close_sock()
             raise
+##        except:
+##            self._close_sock()
         finally:
-            self._sock.close()
+            self._close_sock()
         print "Infect Stopped\n"
         return
 
@@ -169,15 +169,17 @@ class Node(object):
                 elif msg[0]=="R":
                     self._sock.sendto("S "+self.state,msg[1])
                 elif "S " in msg[0]:
-                    #etc
+                    print "TODO"
                 elif msg[0]=="I":
                     self.state = "I"
-        except IOError as IOe:
-            print "LISTENER I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
-            self._sock.close()
-            raise
+##        except IOError as IOe:
+##            print "LISTENER I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
+##            self._close_sock()
+##            raise
+##        except:
+##            self._close_sock()
         finally:
-            self._sock.close()
+            self._close_sock()
         print "Listener Stopped\n"
         return
     
@@ -219,16 +221,14 @@ class Node(object):
     
 
     def _start_threads(self):
-        print "cheguei threads"
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        #self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._sock.bind(("localhost",self._port))
+        self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._sock.bind(("127.0.0.1",self._port))
             
         self._recovery_thread.start()
         self._infect_thread.start()
         self._infection_thread.start()
         self._listener_thread.start()
-        print "cheguei threads fim"
 
     def _join_threads(self):
         self._recovery_thread.join()
@@ -239,6 +239,16 @@ class Node(object):
     def _restart_threads(self):
         self._create_threads()
         self._start_threads()
+
+    def _close_sock(self):
+        try:
+            self._sock.sendto("F",("localhost",self._port))
+            self._sock.close()
+##        except:
+##            self._sock.close()
+        finally:
+            self._sock.close()
+
 
     def __enter__(self):
         return self

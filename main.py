@@ -3,14 +3,18 @@ from datetime import datetime
 import argparse
 
 def parse_network(f, node_id):
-    network = {}
+    neighbors = []
+    nd = None
     for i in f:
         i = i.rstrip("\n").split("|")
         if len(i)<3:
-            return network
-        network[i[0]]=[(i[1],int(i[2])),[(i[3],datetime.now())]]
+            return neighbors
+        if i[0]==node_id:
+            nd = (i[0],(i[1],int(i[2])),[(i[3],datetime.now())])
+        else:
+            neighbors.append((i[0],(i[1],int(i[2])),[(i[3],datetime.now())]))
     f.close()
-    return network
+    return neighbors,nd
 
 
 
@@ -27,31 +31,37 @@ if __name__ == "__main__":
 
     network = {}
     if args.network is not None:
-        network = parse_network(args.network, args.identifier)
-    if args.identifier in network:
+        network,nd = parse_network(args.network, args.identifier)
+    if nd is not None:
         with node.Node() as a:
-            port = network[args.identifier][0][1]
-            state = network[args.identifier][1][0]
-            a.start(port, network, state)
+            #print network
+            a.start(nd, network)
             if args.interactive:
-                help_text = """
-                Commands:
-                0 (help) -> print this
-                1 (update) -> request for neighbors states
-                2 (print) -> print current network state
-                3 (end) -> send shutdown message to all nodes"""
-                print help_text
-                while True:
-                    opt = raw_input(">> Insert command: ")
-                    if opt == "0":
-                        print help_text
-                    elif opt == "1":
-                        a.update()
-                        print "Requests sent!\n"
-                    elif opt == "2":
-                        a.network_state()
-                    elif opt == "3":
-                        a.network_shutdown()
-                        a.stop()
-                    else:
-                        print "Invalid input\n"
+                try:
+                    help_text = """
+                    Commands:
+                    0 (help) -> print this
+                    1 (update) -> request for n9eighbors states
+                    2 (print) -> print current network state
+                    3 (end) -> send shutdown message to all nodes"""
+                    print help_text
+                    while True:
+                        opt = raw_input(">> Insert command: ")
+                        if opt == "0":
+                            print help_text
+                        elif opt == "1":
+                            #a.update()
+                            print "Requests sent!\n"
+                        elif opt == "2":
+                            a.network_state()
+                            print "states\n"
+                        elif opt == "3":
+                            #a.network_shutdown()
+                            a.stop()
+                            break
+                        else:
+                            print "Invalid input\n"
+##                except:
+##                    a.stop()
+                finally:
+                    a.stop()
