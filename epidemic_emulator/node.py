@@ -14,6 +14,7 @@ class Node(object):
         self._initial_state = "S"
         self._neighbors = []
         self._stopped = False
+        self._sock_closed = False
 
         self._recovery_rate = recovery_rate
         self._endogenous_infection_rate = endogenous_infection_rate
@@ -55,10 +56,10 @@ class Node(object):
 
         print "STOPPING NODE\n"
         self._stopped = True
+        if not self._sock_closed: self._close_sock()
+        
         self._infected.set()
         self._susceptible.set()
-        
-        self._close_sock()
         
         #self._join_threads()
 
@@ -73,6 +74,7 @@ class Node(object):
         print "restart STOP\n"
         self.stop()
         self._stopped = False
+        self._sock_closed = False
         self.state = self._initial_state
         self._restart_threads()
 
@@ -102,8 +104,8 @@ class Node(object):
 
     def _infect(self):
         print "Infect Started\n"
-        try:
-            while self._stopped == False:
+        while self._stopped == False:
+            try:
                 self._infected.wait()
                 if self._stopped == True:
                     print "Infect Stopped\n"
@@ -120,14 +122,13 @@ class Node(object):
                         self._sock.sendto("I",rn)
                         
                     print "mandei I\n"
-        except IOError as IOe:
-            print "INFECT I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
-            self._close_sock()
-            raise
+            except IOError as IOe:
+                print "INFECT I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
+                #if not self._sock_closed: self._close_sock()
 ##        except:
 ##            self._close_sock()
-        finally:
-            self._close_sock()
+    ##        finally:
+    ##            if not self._sock_closed: self._close_sock()
         print "Infect Stopped\n"
         return
 
@@ -158,8 +159,8 @@ class Node(object):
 
     def _listener(self):
         print "Listener Started\n"
-        try:
-            while self._stopped == False:
+        while self._stopped == False:
+            try:
                 msg = self._sock.recvfrom(1024)
                 print "recebi: " + str(msg) + "\n"
                 if msg[0]=="F":
@@ -172,14 +173,14 @@ class Node(object):
                     print "TODO"
                 elif msg[0]=="I":
                     self.state = "I"
-##        except IOError as IOe:
-##            print "LISTENER I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
+            except IOError as IOe:
+                print "LISTENER I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
 ##            self._close_sock()
 ##            raise
 ##        except:
 ##            self._close_sock()
-        finally:
-            self._close_sock()
+##        finally:
+##            if not self._sock_closed: self._close_sock()
         print "Listener Stopped\n"
         return
     
@@ -242,6 +243,7 @@ class Node(object):
 
     def _close_sock(self):
         try:
+            self._sock_closed = True
             self._sock.sendto("F",("localhost",self._port))
             self._sock.close()
 ##        except:
