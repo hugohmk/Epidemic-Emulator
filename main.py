@@ -52,7 +52,7 @@ if __name__ == "__main__":
                     help_text = """
                     Commands:
                     0 (help) -> print this
-                    1 (update) -> request for n9eighbors states
+                    1 (update) -> request for neighbors states
                     2 (print current) -> print current network state
                     3 (print history) -> print network history
                     4 (end) -> send shutdown message to all nodes"""
