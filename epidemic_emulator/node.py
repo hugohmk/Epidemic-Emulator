@@ -2,13 +2,14 @@ import socket
 import threading
 import time
 import random
+from contextlib import closing
 
 
 class Node(object):
     """Class that represents the network nodes"""
 
 
-    def __init__(self, recovery_rate = 0.2, endogenous_infection_rate = 1.1, exogenous_infection_rate = 0.2):
+    def __init__(self, recovery_rate = 0.666, endogenous_infection_rate = 1.1, exogenous_infection_rate = 0.666):
         self._state = "S"
         self._initial_state = "S"
         self._neighbors = []
@@ -35,6 +36,7 @@ class Node(object):
         if (self._stopped):
             return False
 
+        self._port = port
         self._stopped = False
         self._neighbors = neighbors
         self.state = "S"
@@ -42,7 +44,6 @@ class Node(object):
         self._initial_state = self.state
         
         self._start_threads()
-        
         return True
 
 
@@ -50,14 +51,21 @@ class Node(object):
         """
         Stops node activity (threads and sockets). 
         """
+
+        print "STOPPING NODE\n"
         self._stopped = True
         self._infected.set()
         self._susceptible.set()
         
-        self._recovery_thread.join()
-        self._infect_thread.join()
-        self._infection_thread.join()
-        self._listener_thread.join()
+        try:
+            self._sock.sendto("",("localhost",self._port))
+            self._sock.close()
+        except:
+            self._sock.close()
+        finally:
+            self._sock.close()
+        
+        #self._join_threads()
 
         self._infected.clear()
         self._susceptible.clear()
@@ -67,6 +75,7 @@ class Node(object):
         """
         Restarts node activity: stops any current threads / sockets and restars them afterwards. 
         """
+        print "restart STOP\n"
         self.stop()
         self._stopped = False
         self.state = self._initial_state
@@ -74,56 +83,101 @@ class Node(object):
 
         
     def _recovery(self):
-        while self._stopped == False:
-            self._infected.wait()
-            print "Recovery Started\n"
-            if self._stopped == True:
-                print "Recovery Stopped\n"
-                return
-            if (self._susceptible.wait(random.expovariate(self.recovery_rate))):
-                print "Recovery Stopped\n"
-                return
-            else:
+        try:
+            while self._stopped == False:
+                self._infected.wait()
+                print "Recovery Started\n"
                 if self._stopped == True:
                     print "Recovery Stopped\n"
                     return
-                self.state = "S"
-                print "Recovery!!!\n"
+                if (self._susceptible.wait(random.expovariate(self.recovery_rate))):
+                    print "Recovery Stopped\n"
+                    return
+                else:
+                    if self._stopped == True:
+                        print "Recovery Stopped\n"
+                        return
+                    self.state = "S"
+                    print "Recovery!!!\n"
+        except:
+            print "Recovery exception\n"
         print "Recovery Stopped\n"
         return
 
 
-    #TODO
     def _infect(self):
         print "Infect Started\n"
+        try:
+            while self._stopped == False:
+                self._infected.wait()
+                if self._stopped == True:
+                    print "Infect Stopped\n"
+                    return
+                if (self._susceptible.wait(random.expovariate(self.exogenous_infection_rate))):
+                    continue
+                else:
+                    if self._stopped == True:
+                        print "Infect Stopped\n"
+                        return
+                    if len(self._neighbors):
+                        self._sock.sendto("I",random.choice(self._neighbors)[1])
+                    print "mandei I\n"
+        except IOError as IOe:
+            print "INFECT I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
+            self._sock.close()
+            raise
+        finally:
+            self._sock.close()
         print "Infect Stopped\n"
         return
 
 
     def _infection(self):
-        while self._stopped == False:
-            self._susceptible.wait()
-            print "Infection Started\n"
-            if self._stopped == True:
-                print "Infection Stopped\n"
-                return
-            if (self._infected.wait(random.expovariate(self.exogenous_infection_rate))):
-                #print "Infection Stopped\n"
-                #return
-                continue
-            else:
+        try:
+            while self._stopped == False:
+                self._susceptible.wait()
+                print "Infection Started\n"
                 if self._stopped == True:
                     print "Infection Stopped\n"
                     return
-                self.state = "I"
-                print "Infection!!!\n"
+                if (self._infected.wait(random.expovariate(self.exogenous_infection_rate))):
+                    #print "Infection Stopped\n"
+                    #return
+                    continue
+                else:
+                    if self._stopped == True:
+                        print "Infection Stopped\n"
+                        return
+                    self.state = "I"
+                    print "Infection!!!\n"
+        except:
+            print "Infection exception\n"
         print "Infection Stopped\n"
         return
 
 
-    #TODO
     def _listener(self):
         print "Listener Started\n"
+        try:
+            while self._stopped == False:
+                msg = self._sock.recvfrom(1024)
+                print "recebi: " + str(msg) + "\n"
+                if msg[0]=="F":
+                   print "End sock msg received\n"
+                   self.stop()
+                   return
+                elif msg[0]=="R":
+                    self._sock.sendto("S "+self.state,msg[1])
+                elif "S " in msg[0]:
+                    #etc
+                elif msg[0]=="I":
+                    self.state = "I"
+        except IOError as IOe:
+            print "LISTENER I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
+            self._sock.close()
+            raise
+        finally:
+            self._sock.close()
         print "Listener Stopped\n"
         return
     
@@ -165,15 +219,33 @@ class Node(object):
     
 
     def _start_threads(self):
+        print "cheguei threads"
+        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        #self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self._sock.bind(("localhost",self._port))
+            
         self._recovery_thread.start()
         self._infect_thread.start()
         self._infection_thread.start()
         self._listener_thread.start()
+        print "cheguei threads fim"
 
+    def _join_threads(self):
+        self._recovery_thread.join()
+        self._infect_thread.join()
+        self._infection_thread.join()
+        self._listener_thread.join()
 
     def _restart_threads(self):
         self._create_threads()
         self._start_threads()
+
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        print "__exit__ STOP\n"
+        self.stop()
         
 
 
