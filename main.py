@@ -49,26 +49,21 @@ if __name__ == "__main__":
             a.start(nd, network)
             if args.interactive:
                 try:
-                    help_text = """
-                    Commands:
-                    0 (help) -> print this
-                    1 (update) -> request for neighbors states
-                    2 (print current) -> print current network state
-                    3 (print history) -> print network history
-                    4 (end) -> send shutdown message to all nodes"""
+                    help_text = """>> Commands:
+        0 (help) -> print this
+        1 (print current) -> print current network state
+        2 (print history) -> print network history
+        3 (end) -> send shutdown message to all nodes"""
                     print help_text
                     while True:
                         opt = raw_input(">> Insert command: ")
                         if opt == "0":
                             print help_text
                         elif opt == "1":
-                            a.update()
-                            print "Requests sent!\n"
-                        elif opt == "2":
                             print a.network_state(),"\n"
-                        elif opt == "3":
+                        elif opt == "2":
                             print a.network_history(),"\n"
-                        elif opt == "4":
+                        elif opt == "3":
                             a.network_shutdown()
                             a.stop()
                             break
