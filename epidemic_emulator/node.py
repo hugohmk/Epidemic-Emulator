@@ -38,10 +38,14 @@ class Node(object):
         if (self._stopped or (nd is None)):
             return False
 
+        self._st = datetime.now()
+        
         self._nd = nd
+        
         self._port = nd[1][1]
         self._stopped = False
         self._neighbors = neighbors
+        
         self.state = "S"
         self.state = nd[2][0][0]
         self._initial_state = self.state
@@ -66,6 +70,7 @@ class Node(object):
 
         self._infected.clear()
         self._susceptible.clear()
+
 
     def stopped(self):
         return self._stopped
@@ -102,7 +107,7 @@ class Node(object):
 
 
     def network_state(self):
-        return [(self._nd[0],self._nd[1],[(self.state,datetime.now())])]+[(i[0],i[1],[i[2][-1]]) for i in self._neighbors]
+        return [(self._nd[0],self._nd[1],[self._nd[2][-1]])]+[(i[0],i[1],[i[2][-1]]) for i in self._neighbors]
 
 
     def network_history(self):
@@ -201,11 +206,11 @@ class Node(object):
                 elif msg[0]=="R":
                     self._sock.sendto("S:"+self.state,msg[1])
                 elif ("S:" in msg[0]) and (len(msg[0])>2):
-                    print msg[0]
+                    #print msg[0]
                     if msg[0][2] in ["S","I"]:
                         for i in xrange(len(self._neighbors)):
                             if self._neighbors[i][1]==msg[1]:
-                                self._neighbors[i][2].append((msg[0][2],datetime.now()))
+                                self._neighbors[i][2].append((msg[0][2],datetime.now()-self._st))
                 elif msg[0]=="I":
                     self.state = "I"
             except IOError as IOe:
@@ -224,13 +229,15 @@ class Node(object):
     def _set_state(self, state):
         if state == "S":
             if self._state != state:
-                self._nd[2].append((state,datetime.now()))
+                self._nd[2].append((state,datetime.now()-self._st))
+                self._broadcast_state()
             self._state = state
             self._infected.clear()
             self._susceptible.set()
         if state == "I":
             if self._state != state:
-                self._nd[2].append((state,datetime.now()))
+                self._nd[2].append((state,datetime.now()-self._st))
+                self._broadcast_state()
             self._state = state
             self._susceptible.clear()
             self._infected.set()
@@ -270,15 +277,29 @@ class Node(object):
         self._infection_thread.start()
         self._listener_thread.start()
 
+
     def _join_threads(self):
         self._recovery_thread.join()
         self._infect_thread.join()
         self._infection_thread.join()
         self._listener_thread.join()
 
+
     def _restart_threads(self):
         self._create_threads()
         self._start_threads()
+
+
+    def _broadcast_state(self):
+        for i in self._neighbors:
+            try:
+                if (not self._stopped) and (not self._sock_closed):
+                    self._sock.sendto("S:"+self.state,i[1])
+                else:
+                    break
+            except IOError as IOe:
+                print "BROADCAST I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
+
 
     def _close_sock(self):
         try:
@@ -291,6 +312,7 @@ class Node(object):
 
     def __enter__(self):
         return self
+
     
     def __exit__(self, exc_type, exc_val, exc_tb):
         print "__exit__ STOP\n"

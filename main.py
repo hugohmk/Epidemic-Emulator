@@ -1,20 +1,24 @@
 from epidemic_emulator import node
 from datetime import datetime
-import time
+import platform
 import argparse
+import time
 import os
+
 
 def parse_network(f, node_id):
     neighbors = []
     nd = None
+    t = datetime.now()
+    t = t-t
     for i in f:
         i = i.rstrip("\n").split("|")
         if len(i)<4:
             return neighbors
         if i[0]==node_id:
-            nd = (i[0],(i[1],int(i[2])),[(i[3],datetime.now())])
+            nd = (i[0],(i[1],int(i[2])),[(i[3],t)])
         else:
-            neighbors.append((i[0],(i[1],int(i[2])),[(i[3],datetime.now())]))
+            neighbors.append((i[0],(i[1],int(i[2])),[(i[3],t)]))
     f.close()
     return neighbors,nd
 
@@ -24,6 +28,8 @@ def parse_network(f, node_id):
 if __name__ == "__main__":
     dir_path = os.path.dirname(os.path.realpath(__file__))
     dir_path_unix = dir_path.replace("\\","/")
+    if (platform.system()!="Windows"): dir_path = dir_path_unix
+
     
     parser = argparse.ArgumentParser()
     parser.add_argument("-id","--identifier",required=True,

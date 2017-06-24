@@ -1,9 +1,11 @@
 from subprocess import call
+import platform
 import os
 
 if __name__=="__main__":
     dir_path = os.path.dirname(os.path.realpath(__file__))
     dir_path_unix = dir_path.replace("\\","/")
+    if (platform.system()!="Windows"): dir_path = dir_path_unix
     cmd=""
     
     with open(dir_path_unix+"/network.txt","r") as f:
@@ -13,7 +15,7 @@ if __name__=="__main__":
             i = i.rstrip("\n").split("|")
             if len(i)<4:
                 break
-            cmd=cmd+"start {0}D:\Python27\python.exe {1} -id {2} {3}\n".format(b, dir_path+"\\main.py", i[0], inter)
+            cmd=cmd+"start {0}D:\\Python27\\python.exe {1} -id {2} {3}\n".format(b, dir_path+"\\main.py", i[0], inter)
             b = "/B "
             inter = ""
 
