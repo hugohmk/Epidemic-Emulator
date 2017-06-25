@@ -53,20 +53,29 @@ if __name__ == "__main__":
         0 (help) -> print this
         1 (print current) -> print current network state
         2 (print history) -> print network history
-        3 (end) -> send shutdown message to all nodes"""
+        3 (end) -> send shutdown message to all nodes
+        4 (display state) -> display current network state
+        5 (display history) -> display network history
+        """
                     print help_text
                     while True:
                         opt = raw_input(">> Insert command: ")
                         if opt == "0":
                             print help_text
                         elif opt == "1":
-                            print a.network_state(),"\n"
+                            #print a.network_state(),"\n"
+                            a.print_state()
                         elif opt == "2":
-                            print a.network_history(),"\n"
+                            #print a.network_history(),"\n"
+                            a.print_history()
                         elif opt == "3":
                             a.network_shutdown()
                             a.stop()
                             break
+                        elif opt == "4":
+                            a.display_state()
+                        elif opt == "5":
+                        	a.display_history()
                         else:
                             print "Invalid input\n"
                 except:
