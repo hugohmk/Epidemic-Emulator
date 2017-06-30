@@ -1,0 +1,26 @@
+Quando um no recebe uma atualizaçao de estado de um vizinho
+em Node._listener, o timedelta registrado é datetime.now()-self._st.
+Ou seja, o que é registrado é o tempo em que o no "observador" percebe
+a atualizaçao do outro, e nao necessariamente o momento em que o outro
+entrou naquele estado.
+
+Isso pode ser um problema se a atualizacao for nao for feita logo apos
+a mudança de estado...
+Pergunta: quando essas mensagens sao enviadas?
+
++ Node._broadcast_state envia o estado atual aos vizinhos quando é
+chamada
+++ Node._broadcast_state é chamada apenas em Node._set_state, quando ha uma
+mudança de estado.
+
++ Node._listener também envia o estado atual
+quando recebe uma mensagem "R" de status request
+++ A mensagem de status request é enviada por Node.update
++++ No momento Node.update so é chamada por Node.print/display_state/history
+
+:. A atualizaçao de estados é feita ou quando um no muda de estado e faz
+broadcast dessa atualizacao para todos, ou quando uma funcao de visualizacao
+de estados é chamada.
+
+A principio nao seria necessario atualizar dentro da funçao de visualizacao,
+ja que cada no receberia automaticamente as mudanças dos outros!

@@ -38,15 +38,33 @@ if __name__ == "__main__":
                         help="File that contains the network's description; each line presents node_id|node_ip|port_number|initial_state")
     parser.add_argument("-i","--interactive",type=int,default=0,
                         help="Interactive mode")
+    parser.add_argument("-r","--recovery_rate",type=float,#default=1.0,
+                        help="Simulation parameter: recovery_rate")
+    parser.add_argument("-e","--endogenous_rate",type=float,#default=1.0,
+                        help="Simulation parameter: endogenous_infection_rate")
+    parser.add_argument("-x","--exogenous_rate",type=float,#default=1e-6,
+                        help="Simulation parameter: exogenous_infection_rate")
     args = parser.parse_args()
 
     network = {}
     if args.network is not None:
         network,nd = parse_network(args.network, args.identifier)
+        
+    # Example nd value:
+    #('9', ('127.0.0.1', 9179), [('S', datetime.timedelta(0))])
+    #
+    # network is a tuple containing every node identifier constructed from 
+    # args.network (default=network.txt) file
+
+    r = args.recovery_rate
+    e = args.endogenous_rate
+    x = args.exogenous_rate
+     
     if nd is not None:
-        with node.Node() as a:
-            #print network
+        with node.Node(r,e,x) as a:
+            
             a.start(nd, network)
+            
             if args.interactive:
                 try:
                     help_text = """>> Commands:
