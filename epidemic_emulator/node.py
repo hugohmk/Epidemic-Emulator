@@ -323,9 +323,36 @@ exogenous_infection_rate = 1.0):
             print(', '.join(history))
 
     display_state = print_state
+    
+    def record_self_history(self):
+        node_id = self._nd[0]
+        node_history = self._nd[2]
+        with open("node_%s_history.txt" % (node_id),"w") as f:
+            f.write("Node %s\n" % (node_id))
+            f.write("state\ttime (seconds)\n")
+            for state in node_history:
+                node_state = state[0]
+                node_time = state[1].total_seconds()
+                state_string = "%s\t%.4f\n" % (node_state,node_time)
+                f.write(state_string)
+
+    def record_network_history(self):
+        self_id = self._nd[0]
+        with open("node_%s_network_history.txt" % (self_id),"w") as f:
+            for v in self._neighbors:
+                node_id = v[0]
+                node_history = v[2]
+                f.write("Node %s\n" % (node_id))
+                f.write("state\ttime (seconds)\n")
+                for state in node_history:
+                    node_state = state[0]
+                    node_time = state[1].total_seconds()
+                    state_string = "%s\t%.4f\n" % (node_state,node_time)
+                    f.write(state_string)
+                f.write("\n")
+
 
     def display_history(self):
-        #self.update()
         history_records = []
         nethist = self.network_history()
         for i in nethist:
@@ -368,7 +395,8 @@ exogenous_infection_rate = 1.0):
 #               print("nada acontece, feijoada")
 
         plt.plot(event_times,infected_numbers,'-o')
-        plt.show()
+        plt.savefig('network_history.jpg')
+#        plt.show()
 
 ########## Thread manipulation ##########
 
@@ -427,4 +455,10 @@ exogenous_infection_rate = 1.0):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         #print "__exit__ STOP\n"
+        
+        # Record simulation data
+#        self.record_self_history()
+#        if (self._nd[0] == '0'):
+#            self.record_network_history()
+            
         self.stop()

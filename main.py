@@ -36,8 +36,10 @@ if __name__ == "__main__":
                         help="Node identifier")
     parser.add_argument("-n","--network",type=argparse.FileType('r'), default = dir_path_unix+"/network.txt",
                         help="File that contains the network's description; each line presents node_id|node_ip|port_number|initial_state")
-    parser.add_argument("-i","--interactive",type=int,default=0,
-                        help="Interactive mode")
+#    parser.add_argument("-i","--interactive",type=int,default=0,
+#                        help="Interactive mode")
+    parser.add_argument("-i","--interaction",type=int,default=0,
+                        help="Interaction mode: default (0), interactive (1), simulation (2)")
     parser.add_argument("-r","--recovery_rate",type=float,#default=1.0,
                         help="Simulation parameter: recovery_rate")
     parser.add_argument("-e","--endogenous_rate",type=float,#default=1.0,
@@ -65,7 +67,7 @@ if __name__ == "__main__":
             
             a.start(nd, network)
             
-            if args.interactive:
+            if args.interaction == 1:
                 try:
                     help_text = """>> Commands:
         0 (help) -> print this
@@ -87,13 +89,14 @@ if __name__ == "__main__":
                             #print a.network_history(),"\n"
                             a.print_history()
                         elif opt == "3":
+                            a.display_history()
                             a.network_shutdown()
                             a.stop()
                             break
                         elif opt == "4":
                             a.display_state()
                         elif opt == "5":
-                        	a.display_history()
+                            a.display_history()
                         else:
                             print "Invalid input\n"
                 except:
@@ -102,6 +105,14 @@ if __name__ == "__main__":
                 finally:
                     a.network_shutdown()
                     a.stop()
+                    
+            elif args.interaction > 1:
+                print("Running simulation for %d seconds." % args.interaction)
+                time.sleep(args.interaction)
+                a.display_history()
+                a.network_shutdown()
+                a.stop()
+                
             else:
                 try:
                     while not a.stopped():
@@ -110,3 +121,4 @@ if __name__ == "__main__":
                     a.stop()
                 finally:
                     a.stop()
+                    

@@ -24,3 +24,13 @@ de estados é chamada.
 
 A principio nao seria necessario atualizar dentro da funçao de visualizacao,
 ja que cada no receberia automaticamente as mudanças dos outros!
+
+O quanto difere a "historia observada" da historia "real" de um no?
+:. Fazendo teste com Node.record_self_history e Node.record_network_history,
+conclui que a diferença e desprezivel. As sequencias de estados observadas
+estao corretas e os tempos estao de acordo nos segundos, errando apenas na 1a casa decimal.
+
+
+Modifiquei o modo interativo do main.py: o argumento agora é --interaction,
+habilitando modo passivo (0), interativo (1) ou simulacao (>1). No modo
+simulacao o parametro passado é o tempo em segundos de simulacao a ser executado.
