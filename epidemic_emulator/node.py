@@ -391,12 +391,64 @@ exogenous_infection_rate = 1.0):
                 infected_numbers.append(infected_count)
                 print("%.4f\t%d" % (r[2],infected_count))
 
-#           else:
-#               print("nada acontece, feijoada")
+            else:
+                pass
+                #print("nada acontece, feijoada")
 
         plt.plot(event_times,infected_numbers,'-o')
-        plt.savefig('network_history.jpg')
-#        plt.show()
+#        plt.savefig('network_history.jpg')
+        plt.show()
+        
+    def save_simulation_data(self):
+    
+        nethist = self.network_history()
+        
+        # history_records is a list of tuples (node_id, node_state, node_time)
+        # containing all node status updates.
+        history_records = []
+        for i in nethist:
+            node_id = i[0]
+            node_history = i[2]
+            for state in node_history:
+                node_state = state[0]
+                node_time = state[1].total_seconds()
+                # this test is just to disconsider the initial state of each node
+                if node_time > 0.0:
+                    history_records.append( (node_id, node_state, node_time) )
+        history_records = sorted(history_records, key=lambda x: x[2])
+        
+        # count the number of infected nodes at each timestamp
+        # stats is initialized with the initial state of each node
+        stats = dict( (i[0], i[2][0][0]) for i in nethist )
+        infected_count = 0
+        infected_records = []
+        for i in stats:
+            if stats[i] == 'I':
+                infected_count = infected_count+1
+        event_times = [0.0]
+        infected_numbers = [infected_count]
+        infected_records.append((0.0,infected_count))
+        for r in history_records:
+            if r[1] == 'I' and stats[r[0]] == 'S':
+                stats[r[0]] = r[1]
+                infected_count = infected_count+1
+                event_times.append(r[2])
+                infected_numbers.append(infected_count)
+                infected_records.append((r[2],infected_count))
+                #print("%.4f\t%d" % (r[2],infected_count))
+            elif r[1] == 'S' and stats[r[0]] == 'I':
+                stats[r[0]] = r[1]
+                infected_count = infected_count-1
+                event_times.append(r[2])
+                infected_numbers.append(infected_count)
+                infected_records.append((r[2],infected_count))
+                #print("%.4f\t%d" % (r[2],infected_count))
+        
+#        for r in infected_records:
+#            print("%.2f\t%d" % (r[0],r[1]))
+        
+        return infected_records
+        
 
 ########## Thread manipulation ##########
 
@@ -457,8 +509,8 @@ exogenous_infection_rate = 1.0):
         #print "__exit__ STOP\n"
         
         # Record simulation data
-#        self.record_self_history()
-#        if (self._nd[0] == '0'):
-#            self.record_network_history()
+        #self.record_self_history()
+        if (self._nd[0] == '0'):
+            self.record_network_history()
             
         self.stop()
