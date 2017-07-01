@@ -145,12 +145,13 @@ exogenous_infection_rate = 1.0):
 ########## Simulation threads ##########
 
     def _recovery(self):
+        r = random.Random(datetime.now().microsecond + int(self._nd[0]))
         try:
             while self._stopped == False:
                 self._infected.wait()
                 if self._stopped == True:
                     return
-                if (self._susceptible.wait(random.expovariate(self.recovery_rate))):
+                if (self._susceptible.wait(r.expovariate(self.recovery_rate))):
                     return
                 else:
                     if self._stopped == True:
@@ -162,12 +163,13 @@ exogenous_infection_rate = 1.0):
 
 
     def _infect(self):
+        r = random.Random(datetime.now().microsecond + int(self._nd[0]))
         while self._stopped == False:
             try:
                 self._infected.wait()
                 if self._stopped == True:
                     return
-                if (self._susceptible.wait(random.expovariate(self.endogenous_infection_rate))):
+                if (self._susceptible.wait(r.expovariate(self.endogenous_infection_rate))):
                     continue
                 else:
                     if self._stopped == True:
@@ -190,12 +192,13 @@ exogenous_infection_rate = 1.0):
 
 
     def _infection(self):
+        r = random.Random(datetime.now().microsecond + int(self._nd[0]))
         try:
             while self._stopped == False:
                 self._susceptible.wait()
                 if self._stopped == True:
                     return
-                if (self._infected.wait(random.expovariate(self.exogenous_infection_rate))):
+                if (self._infected.wait(r.expovariate(self.exogenous_infection_rate))):
                     #return
                     continue
                 else:
@@ -453,10 +456,10 @@ exogenous_infection_rate = 1.0):
 ########## Thread manipulation ##########
 
     def _create_threads(self):
-        self._recovery_thread = threading.Thread(target=self._recovery)
         self._infect_thread = threading.Thread(target=self._infect)
         self._infection_thread = threading.Thread(target=self._infection)
         self._listener_thread = threading.Thread(target=self._listener)
+        self._recovery_thread = threading.Thread(target=self._recovery)
 
 
     def _start_threads(self):

@@ -5,7 +5,7 @@ import argparse
 import time
 import os
 import matplotlib.pyplot as plt
-
+import random
 
 def parse_network(f, node_id):
     neighbors = []
@@ -24,7 +24,7 @@ def parse_network(f, node_id):
     return neighbors,nd
     
 def simulation_controller(args,nd,network):
-        
+    
     # Example nd value:
     #('9', ('127.0.0.1', 9179), [('S', datetime.timedelta(0))])
     #
