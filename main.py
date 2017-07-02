@@ -200,11 +200,13 @@ if __name__ == "__main__":
                         help="Simulation parameter: endogenous_infection_rate")
     parser.add_argument("-x","--exogenous_rate",type=float,#default=1e-6,
                         help="Simulation parameter: exogenous_infection_rate")
+    parser.add_argument("-t","--topology",choices=["clique","cicle","star"],default="clique",
+                        help="Network topology: clique, cicle or star")
     args = parser.parse_args()
     
     network = {}
     if args.network is not None:
-        network,nd = parse_network(args.network, args.identifier)
+        network,nd = parse_network(args.network, args.identifier, args.topology)
         
     simulation_time = args.interaction
     
