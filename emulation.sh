@@ -14,9 +14,9 @@ echo "Using r=$recovery, e=$endogenous, x=$exogenous"
 node=1
 while [ $node -lt 10 ]; do
   echo "Launching node $node"
-  python /home/gdcs/Epidemic-Emulator/main.py -id $node -r $recovery -e $endogenous -x $exogenous &
+  python /home/gdcs/Epidemic-Emulator/main.py -t star -id $node -r $recovery -e $endogenous -x $exogenous &
   node=$((node+1))
 done
 
 echo "Launching node 0"
-python /home/gdcs/Epidemic-Emulator/main.py -id 0 -i 20 -r $recovery -e $endogenous -x $exogenous
+python /home/gdcs/Epidemic-Emulator/main.py -t star -id 0 -i 60 -r $recovery -e $endogenous -x $exogenous
