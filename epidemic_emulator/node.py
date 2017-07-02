@@ -113,15 +113,15 @@ exogenous_infection_rate = 1.0):
         if state == "S":
             if self._state != state:
                 self._nd[2].append((state,datetime.now()-self._st))
+                self._state = state
                 self._broadcast_state()
-            self._state = state
             self._infected.clear()
             self._susceptible.set()
         if state == "I":
             if self._state != state:
                 self._nd[2].append((state,datetime.now()-self._st))
+                self._state = state
                 self._broadcast_state()
-            self._state = state
             self._susceptible.clear()
             self._infected.set()
     state = property(_get_state, _set_state)
@@ -145,13 +145,13 @@ exogenous_infection_rate = 1.0):
 ########## Simulation threads ##########
 
     def _recovery(self):
-        r = random.Random(datetime.now().microsecond + int(self._nd[0]))
+        random.seed(str(datetime.now())+self._nd[0])
         try:
             while self._stopped == False:
                 self._infected.wait()
                 if self._stopped == True:
                     return
-                if (self._susceptible.wait(r.expovariate(self.recovery_rate))):
+                if (self._susceptible.wait(random.expovariate(self.recovery_rate))):
                     return
                 else:
                     if self._stopped == True:
@@ -163,13 +163,13 @@ exogenous_infection_rate = 1.0):
 
 
     def _infect(self):
-        r = random.Random(datetime.now().microsecond + int(self._nd[0]))
+        random.seed(str(datetime.now())+self._nd[0])
         while self._stopped == False:
             try:
                 self._infected.wait()
                 if self._stopped == True:
                     return
-                if (self._susceptible.wait(r.expovariate(self.endogenous_infection_rate))):
+                if (self._susceptible.wait(random.expovariate(self.endogenous_infection_rate))):
                     continue
                 else:
                     if self._stopped == True:
@@ -192,13 +192,13 @@ exogenous_infection_rate = 1.0):
 
 
     def _infection(self):
-        r = random.Random(datetime.now().microsecond + int(self._nd[0]))
+        random.seed(str(datetime.now())+self._nd[0])
         try:
             while self._stopped == False:
                 self._susceptible.wait()
                 if self._stopped == True:
                     return
-                if (self._infected.wait(r.expovariate(self.exogenous_infection_rate))):
+                if (self._infected.wait(random.expovariate(self.exogenous_infection_rate))):
                     #return
                     continue
                 else:
@@ -236,7 +236,9 @@ exogenous_infection_rate = 1.0):
                 
                 # Endogenous infection message
                 elif msg[0]=="I":
+                    print("Node %s received an infected message" % self._nd[0])
                     self.state = "I"
+                    print("Node %s state: %s" % (self._nd[0],self._state))
                     
             except IOError as IOe:
                 print "LISTENER I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
@@ -262,6 +264,7 @@ exogenous_infection_rate = 1.0):
                     break
             except IOError as IOe:
                 print "BROADCAST I/O error({0}): {1}".format(IOe.errno, IOe.strerror)
+        print("Node %s broadcast 'S:%s'" % (self._nd[0],self.state))
 
 
 ########## Visualizing state information ##########

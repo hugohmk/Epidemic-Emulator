@@ -146,7 +146,11 @@ def process_data(simdata,repetitions,simulation_time):
     print(average_results)
         
     plt.plot(list(range(0,simulation_time+1)),average_results,'-o')
+    axes = plt.gca()
+    axes.set_xlim([0,simulation_time])
+    axes.set_ylim([0,10])
     plt.savefig("average_simulation.jpg")
+    
 
 
 if __name__ == "__main__":
@@ -178,7 +182,7 @@ if __name__ == "__main__":
         
     simulation_time = args.interaction
     
-    repetitions = 10
+    repetitions = 1
     simdata = []
     for i in range(repetitions):
         simdata.append(simulation_controller(args,nd,network))
