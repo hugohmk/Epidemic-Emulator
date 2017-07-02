@@ -516,7 +516,7 @@ exogenous_infection_rate = 1.0):
         
         # Record simulation data
         #self.record_self_history()
-        if (self._nd[0] == '0'):
-            self.record_network_history()
+        #if (self._nd[0] == '0'):
+        #    self.record_network_history()
             
         self.stop()

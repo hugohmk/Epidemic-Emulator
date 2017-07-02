@@ -162,10 +162,6 @@ def process_data(simdata,repetitions,simulation_time):
             print("time\tinfected count")
             for t in range(simulation_time+1):
                 print("%d\t%d" % (t,simresults[k][t]))
-
-#        plt.plot(list(range(0,simulation_time+1)),simresults[k],'-o')
-#        plt.savefig("simulation_%d.jpg" % k)
-#        plt.gcf().clear()
         
     average_results = [0.0 for t in range(simulation_time+1)]
     for t in range(simulation_time+1):
@@ -178,9 +174,11 @@ def process_data(simdata,repetitions,simulation_time):
     plt.plot(list(range(0,simulation_time+1)),average_results,'-o')
     axes = plt.gca()
     axes.set_xlim([0,simulation_time])
-    axes.set_ylim([0,10])
-    plt.savefig("average_simulation.jpg")
-    
+    #axes.set_ylim([0,10])
+    plt.xlabel("Seconds")
+    plt.ylabel("Infected nodes")
+    plt.savefig("average_simulation.pdf")
+
 
 
 if __name__ == "__main__":
