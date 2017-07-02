@@ -16,7 +16,9 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-py","--python",default="python",
                         help="Pyhton location (use this if python can not be located in PATH)")
-
+    parser.add_argument("-t","--topology",choices=["clique","cicle","star"],default="clique",
+                        help="Network topology: clique, cicle or star")
+    
     args = parser.parse_args()
     with open(dir_path_unix+"/network.txt","r") as f:
         b = ""
@@ -26,11 +28,11 @@ if __name__=="__main__":
             if len(i)<4:
                 break
             if windows_plat:
-                cmd = cmd + "start {0}{1} {2} -id {3} {4}\n".format(b, args.python, dir_path+"\\main.py", i[0], inter)
+                cmd = cmd + "start {0}{1} {2} -id {3} {4}\n".format(b, args.python, dir_path+"\\main.py -t "+args.topology, i[0], inter)
                 b = "/B "
                 inter = ""
             else:
-                cmd = cmd + "{1} {2} -id {3} {4} {0}\n".format(b, args.python, dir_path+"/main.py", i[0], inter)
+                cmd = cmd + "{1} {2} -id {3} {4} {0}\n".format(b, args.python, dir_path+"/main.py -t "+args.topology, i[0], inter)
                 b = "&"
                 inter = ""
                 
