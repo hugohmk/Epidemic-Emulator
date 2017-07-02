@@ -192,7 +192,7 @@ if __name__ == "__main__":
     parser.add_argument("-x","--exogenous_rate",type=float,#default=1e-6,
                         help="Simulation parameter: exogenous_infection_rate")
     parser.add_argument("-t","--topology",choices=["clique","star"],default="clique",
-                        help="Network topology: clique, cicle or star")
+                        help="Network topology: clique or star")
     args = parser.parse_args()
     
     network = {}
