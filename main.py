@@ -7,20 +7,50 @@ import os
 import matplotlib.pyplot as plt
 import random
 
-def parse_network(f, node_id):
+def parse_network(f, node_id, topology = "clique"):
     neighbors = []
     nd = None
     t = datetime.now()
     t = t-t
+    
+    net = []
+    index = -1
+    cnt = 0
+
     for i in f:
         i = i.rstrip("\n").split("|")
         if len(i)<4:
-            return neighbors
+            continue
+        u = (i[0],(i[1],int(i[2])),[(i[3],t)])
         if i[0]==node_id:
-            nd = (i[0],(i[1],int(i[2])),[(i[3],t)])
-        else:
-            neighbors.append((i[0],(i[1],int(i[2])),[(i[3],t)]))
+            nd = u
+            index = cnt 
+        net.append(u)
+        cnt+=1
     f.close()
+    
+    # clique
+    if topology == "clique":
+        neighbors = [i for i in net if i[0] != node_id]
+
+    # star
+    elif topology == "star":
+        if index > 0:
+            neighbors = [net[0]]
+        else:
+            neighbors = net[1:]
+
+    # cicle
+    elif topology == "cicle":
+        if len(net) == 2:
+            neighbors = [i for i in net if i[0] != node_id]
+        elif len(net)>2:
+            i1 = index-1
+            i2 = index+1
+            if i1<0: i1 = len(net)-1
+            if i2>len(net)-1: i2 = 0
+            neighbors.extend(net[i1],net[i2])
+            
     return neighbors,nd
     
 def simulation_controller(args,nd,network):
