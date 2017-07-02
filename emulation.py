@@ -16,7 +16,7 @@ if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-py","--python",default="python",
                         help="Pyhton location (use this if python can not be located in PATH)")
-    parser.add_argument("-t","--topology",choices=["clique","cicle","star"],default="clique",
+    parser.add_argument("-t","--topology",choices=["clique","star"],default="clique",
                         help="Network topology: clique, cicle or star")
     
     args = parser.parse_args()

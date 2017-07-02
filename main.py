@@ -39,17 +39,6 @@ def parse_network(f, node_id, topology = "clique"):
             neighbors = [net[0]]
         else:
             neighbors = net[1:]
-
-    # cicle
-    elif topology == "cicle":
-        if len(net) == 2:
-            neighbors = [i for i in net if i[0] != node_id]
-        elif len(net)>2:
-            i1 = index-1
-            i2 = index+1
-            if i1<0: i1 = len(net)-1
-            if i2>len(net)-1: i2 = 0
-            neighbors.extend(net[i1],net[i2])
             
     return neighbors,nd
     
@@ -202,7 +191,7 @@ if __name__ == "__main__":
                         help="Simulation parameter: endogenous_infection_rate")
     parser.add_argument("-x","--exogenous_rate",type=float,#default=1e-6,
                         help="Simulation parameter: exogenous_infection_rate")
-    parser.add_argument("-t","--topology",choices=["clique","cicle","star"],default="clique",
+    parser.add_argument("-t","--topology",choices=["clique","star"],default="clique",
                         help="Network topology: clique, cicle or star")
     args = parser.parse_args()
     
